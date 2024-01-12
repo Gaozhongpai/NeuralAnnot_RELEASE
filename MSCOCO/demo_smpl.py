@@ -86,12 +86,12 @@ def render_mesh(img, mesh, face, cam_param):
 def demo():
     target_aid = 476384
 
-    db = COCO('annotations/person_keypoints_train2017.json')
+    db = COCO('dataset/coco/annotations/person_keypoints_train2017.json')
     # smpl parameter load
-    with open('annotations/MSCOCO_train_SMPL_NeuralAnnot.json','r') as f:
+    with open('dataset/coco/annotations/MSCOCO_train_SMPL_NeuralAnnot.json','r') as f:
         smpl_params = json.load(f)
 
-    smpl_path = '/home/mks0601/workspace/human_model_files'
+    smpl_path = 'models'
     smpl_layer = smplx.create(smpl_path, 'smpl')
     for aid in db.anns.keys():
         ann = db.anns[aid]
@@ -101,7 +101,7 @@ def demo():
             continue
         
         # image path and bbox
-        img_path = osp.join('train2017', img['file_name'])
+        img_path = osp.join('dataset/coco/train2017', img['file_name'])
         bbox = process_bbox(np.array(ann['bbox']), img['width'], img['height'])
         if bbox is None:
             print('invalid bbox')

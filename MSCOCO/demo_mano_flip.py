@@ -9,6 +9,7 @@ import os
 os.environ["PYOPENGL_PLATFORM"] = "osmesa"
 import pyrender
 import trimesh
+from joblib import dump, load
 
 def sanitize_bbox(bbox, img_width, img_height):
     x, y, w, h = bbox
@@ -83,46 +84,55 @@ def render_mesh(img, mesh, face, cam_param):
     img = rgb * valid_mask + img * (1-valid_mask)
     return img
 
+def flip_mano(hand_pose, trans):
+    hand_pose[1::3] *= -1
+    hand_pose[2::3] *= -1
+    
+    trans[0] = -trans[0]
+    return hand_pose, trans
+
 def demo():
     target_aid = 476384
+    # mano parameter load
+    with open('dataset/coco/annotations/MSCOCO_train_MANO_NeuralAnnot.json','r') as f:
+        mano_params = json.load(f)
 
-    db = COCO('dataset/coco/annotations/coco_wholebody_train_v1.0.json')
-    # flame parameter load
-    with open('dataset/coco/annotations/MSCOCO_train_FLAME_NeuralAnnot.json','r') as f:
-        flame_params = json.load(f)
-
-    flame_path = 'models'
-    flame_layer = smplx.create(flame_path, 'flame')
-    for aid in db.anns.keys():
-        ann = db.anns[aid]
-        image_id = ann['image_id']
-        img = db.loadImgs(image_id)[0]
-        img_path = osp.join('dataset/coco/train2017', img['file_name'])
-        if aid != target_aid:
-            continue
+    mano_path = 'models'
+    mano_layer = {'right': smplx.create(mano_path, 'mano', use_pca=False, is_rhand=True), 'left': smplx.create(mano_path, 'mano', use_pca=False, is_rhand=False)}
+    
+    example = load('example.pkl')
+    # ann = example['ann']
+    img = example['img']
+    img_path = example['img_path']
+    
+    for hand_type in ('right', 'left'):
+        # mano parameter
+        mano_param = mano_params[str(target_aid)][hand_type]
+        pose, shape, trans = mano_param['mano_param']['pose'], mano_param['mano_param']['shape'], mano_param['mano_param']['trans']
+        pose, trans = flip_mano(np.array(pose), np.array(trans))
         
-        # flame parameter
-        flame_param = flame_params[str(aid)]
-        root_pose, jaw_pose, expr, shape, trans = flame_param['flame_param']['root_pose'], flame_param['flame_param']['jaw_pose'], flame_param['flame_param']['expr'], flame_param['flame_param']['shape'], flame_param['flame_param']['trans']
-        root_pose = torch.FloatTensor(root_pose).view(1,3)
-        jaw_pose = torch.FloatTensor(jaw_pose).view(1,3)
-        expr = torch.FloatTensor(expr).view(1,-1) # facial expression code
-        shape = torch.FloatTensor(shape).view(1,-1) # FLAME shape parameter
+        pose = torch.FloatTensor(pose).view(-1,3) # (24,3)
+        root_pose = pose[0,None,:]
+        hand_pose = pose[1:,:]
+        shape = torch.FloatTensor(shape).view(1,-1) # MANO shape parameter
         trans = torch.FloatTensor(trans).view(1,-1) # translation vector
-      
+        
+        hand_type = "left" if hand_type == "right" else "right"
         # get mesh and joint coordinates
         with torch.no_grad():
-            output = flame_layer(betas=shape, jaw_pose=jaw_pose, global_orient=root_pose, transl=trans, expression=expr)
+            output = mano_layer[hand_type](betas=shape, hand_pose=hand_pose.view(1,-1), global_orient=root_pose, transl=trans)
         mesh_cam = output.vertices[0].numpy()
 
         # mesh render
         img = cv2.imread(img_path)
-        focal = flame_param['cam_param']['focal']
-        princpt = flame_param['cam_param']['princpt']
-        rendered_img = render_mesh(img, mesh_cam, flame_layer.faces, {'focal': focal, 'princpt': princpt})
-        cv2.imwrite('flame.jpg', rendered_img)
+        img = cv2.flip(img, 1)
         
-        break
+        focal = mano_param['cam_param']['focal']
+        princpt = mano_param['cam_param']['princpt']
+        princpt[0] = img.shape[1] - princpt[0]
+        rendered_img = render_mesh(img, mesh_cam, mano_layer[hand_type].faces, {'focal': focal, 'princpt': princpt})
+        cv2.imwrite('mano_' + hand_type + '.jpg', rendered_img)
+    
 
 if __name__ == "__main__":
     demo()

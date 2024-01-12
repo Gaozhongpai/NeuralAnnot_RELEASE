@@ -6,7 +6,7 @@ import smplx
 from pycocotools.coco import COCO
 import os.path as osp
 import os
-os.environ["PYOPENGL_PLATFORM"] = "osmesa"
+os.environ["PYOPENGL_PLATFORM"] = "egl"
 import pyrender
 import trimesh
 
@@ -83,53 +83,87 @@ def render_mesh(img, mesh, face, cam_param):
     img = rgb * valid_mask + img * (1-valid_mask)
     return img
 
-def flip_mano(root_pose, hand_pose):
-    root_pose[1::3] *= -1
-    root_pose[2::3] *= -1
-    hand_pose[1::3] *= -1
-    hand_pose[2::3] *= -1
-    return root_pose, hand_pose
-
 def demo():
     target_aid = 476384
-    
-    mano_path = 'models'
-    mano_layer = {'right': smplx.create(mano_path, 'mano', use_pca=False, is_rhand=True), 'left': smplx.create(mano_path, 'mano', use_pca=False, is_rhand=False)}
-    
-    db = COCO("dataset/coco/annotations/coco_wholebody_train_v1.0.json")
-    # mano parameter load
+
+    db = COCO('dataset/coco/annotations/person_keypoints_train2017.json')
+    # smpl parameter load
+    with open('dataset/coco/annotations/MSCOCO_train_SMPL_NeuralAnnot.json','r') as f:
+        smpl_params = json.load(f)
+        
     with open('dataset/coco/annotations/MSCOCO_train_MANO_NeuralAnnot.json','r') as f:
         mano_params = json.load(f)
+
+    model_path = 'models'
+    smpl_layer = smplx.create(model_path, 'smpl')
+    smplh_male_layer = smplx.create(model_path, 'smplh', gender="male")
+    smplh_female_layer = smplx.create(model_path, 'smplh', gender="female")
+    mano_layer = {'right': smplx.create(model_path, 'mano', use_pca=False, is_rhand=True), 'left': smplx.create(model_path, 'mano', use_pca=False, is_rhand=False)}
 
     for aid in db.anns.keys():
         ann = db.anns[aid]
         image_id = ann['image_id']
         img = db.loadImgs(image_id)[0]
-        img_path = osp.join('dataset/coco/train2017', img['file_name'])
         if aid != target_aid:
             continue
         
+        # image path and bbox
+        img_path = osp.join('dataset/coco/train2017', img['file_name'])
+        bbox = process_bbox(np.array(ann['bbox']), img['width'], img['height'])
+        if bbox is None:
+            print('invalid bbox')
+            break
+       
+        # smpl parameter
+        smpl_param = smpl_params[str(aid)]
+        pose, shape, trans = smpl_param['smpl_param']['pose'], smpl_param['smpl_param']['shape'], smpl_param['smpl_param']['trans']
+        pose = torch.FloatTensor(pose).view(-1,3) # (24,3)
+        root_pose = pose[0,None,:]
+        body_pose = pose[1:,:]
+        shape = torch.FloatTensor(shape).view(1,-1) # SMPL shape parameter
+        trans = torch.FloatTensor(trans).view(1,-1) # translation vector
+      
+        # get mesh and joint coordinates
+        with torch.no_grad():
+            output = smpl_layer(betas=shape, body_pose=body_pose.view(1,-1), global_orient=root_pose, transl=trans)
+        mesh_cam = output.vertices[0].numpy()
+        joint_cam = output.joints[0].numpy()
+        
+        hand_cam = {}
+        mano_param = {}
         for hand_type in ('right', 'left'):
-            # mano parameter
-            mano_param = mano_params[str(aid)][hand_type]
-            pose, shape, trans = mano_param['mano_param']['pose'], mano_param['mano_param']['shape'], mano_param['mano_param']['trans']
+            # mano parameter 
+            mano_param[hand_type] = mano_params[str(aid)][hand_type]
+            pose, shape, trans = mano_param[hand_type]['mano_param']['pose'], \
+                                 mano_param[hand_type]['mano_param']['shape'], \
+                                 mano_param[hand_type]['mano_param']['trans']
             pose = torch.FloatTensor(pose).view(-1,3) # (24,3)
             root_pose = pose[0,None,:]
             hand_pose = pose[1:,:]
             shape = torch.FloatTensor(shape).view(1,-1) # MANO shape parameter
             trans = torch.FloatTensor(trans).view(1,-1) # translation vector
-          
+            
             # get mesh and joint coordinates
             with torch.no_grad():
                 output = mano_layer[hand_type](betas=shape, hand_pose=hand_pose.view(1,-1), global_orient=root_pose, transl=trans)
-            mesh_cam = output.vertices[0].numpy()
+            hand_cam[hand_type] = output.vertices[0].numpy()
 
-            # mesh render
-            img = cv2.imread(img_path)
-            focal = mano_param['cam_param']['focal']
-            princpt = mano_param['cam_param']['princpt']
-            rendered_img = render_mesh(img, mesh_cam, mano_layer[hand_type].faces, {'focal': focal, 'princpt': princpt})
-            cv2.imwrite('mano_' + hand_type + '.jpg', rendered_img)
+        # mesh render
+        img = cv2.imread(img_path)
+        focal = smpl_param['cam_param']['focal']
+        princpt = smpl_param['cam_param']['princpt']
+        
+        # mesh render
+        focal_right = mano_param['right']['cam_param']['focal']
+        focal_left = mano_param['left']['cam_param']['focal']
+        
+        princpt_right = mano_param['right']['cam_param']['princpt']
+        princpt_left = mano_param['left']['cam_param']['princpt']
+        
+        rendered_img = render_mesh(img, mesh_cam, smpl_layer.faces, {'focal': focal, 'princpt': princpt})
+        rendered_img = render_mesh(rendered_img, hand_cam['right'], mano_layer['right'].faces, {'focal': focal_right, 'princpt': princpt_right})
+        rendered_img = render_mesh(rendered_img, hand_cam['left'], mano_layer['left'].faces, {'focal': focal_left, 'princpt': princpt_left})
+        cv2.imwrite('smplh.jpg', rendered_img)
         
         break
 

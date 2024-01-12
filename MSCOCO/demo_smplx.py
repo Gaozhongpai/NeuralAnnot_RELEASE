@@ -2,13 +2,17 @@ import json
 import numpy as np
 import cv2
 import torch
-import smplx
+
 from pycocotools.coco import COCO
 import os.path as osp
 import os
 os.environ["PYOPENGL_PLATFORM"] = "egl"
 import pyrender
 import trimesh
+import sys 
+
+sys.path.append('/code/')
+import smplx
 
 def sanitize_bbox(bbox, img_width, img_height):
     x, y, w, h = bbox
@@ -86,12 +90,12 @@ def render_mesh(img, mesh, face, cam_param):
 def demo():
     target_aid = 476384
 
-    db = COCO('annotations/person_keypoints_train2017.json')
+    db = COCO('dataset/coco/annotations/person_keypoints_train2017.json')
     # smplx parameter load
-    with open('annotations/MSCOCO_train_SMPLX_all_NeuralAnnot.json','r') as f:
+    with open('dataset/coco/annotations/MSCOCO_train_SMPLX_all_NeuralAnnot.json','r') as f:
         smplx_params = json.load(f)
 
-    smplx_path = '/home/mks0601/workspace/human_model_files'
+    smplx_path = 'models'
     smplx_layer = smplx.create(smplx_path, 'smplx', use_pca=False)
     for aid in db.anns.keys():
         ann = db.anns[aid]
@@ -101,7 +105,7 @@ def demo():
             continue
         
         # image path and bbox
-        img_path = osp.join('train2017', img['file_name'])
+        img_path = osp.join('dataset/coco/train2017', img['file_name'])
         bbox = process_bbox(np.array(ann['bbox']), img['width'], img['height'])
         if bbox is None:
             print('invalid bbox')
@@ -119,6 +123,8 @@ def demo():
         rhand_pose = torch.FloatTensor(rhand_pose).view(1,-1)
         jaw_pose = torch.FloatTensor(jaw_pose).view(1,-1)
         expr = torch.FloatTensor(expr).view(1,-1)
+        
+        shape = torch.cat([shape, torch.zeros((1, 6))], dim=-1)
 
         # get mesh and joint coordinates
         with torch.no_grad():
