@@ -142,6 +142,8 @@ def demo():
     
     json_dir = "dataset/coco/annotations"
     save_dir = "dataset/coco/"
+    hand_scales = []
+    head_scales = []
     
     for json_file in sorted(Path(json_dir).resolve().glob('*_v1.0.json')):
         print(json_file)
@@ -232,6 +234,7 @@ def demo():
                             
                             trans_uv = perspective_projection(-trans_mesh.cpu()[None, None], focal[None], princpt[None])
                             scale =  focal.mean() / translation[:, -1]
+                            hand_scales.append(scale)
                             trans_mesh_unproject = calc_global_translation(trans_uv, scale, K)
                             
                             if count % n_vis == 0:
@@ -242,8 +245,11 @@ def demo():
                                 error = torch.norm(recover - mesh_cam).cpu()
                                 print("Hand error is: {}".format(error))
                                 logging.info("Hand error is: {}".format(error))
+                                print("Hand trans_mesh is: {} and trans_mesh_unproject is: {}".format(trans_mesh, trans_mesh_unproject))
+                                logging.info("Hand trans_mesh is: {} and trans_mesh_unproject is: {}".format(trans_mesh, trans_mesh_unproject))
                                 # mesh render
                                 rendered_img = render_mesh(rendered_img, recover.cpu().numpy(), mano_layer[hand].faces, {'focal': focal, 'princpt': princpt})
+                                cv2.circle(rendered_img, (int(trans_uv[0, 0, 0]), int(trans_uv[0, 0, 1])), 3, (0,0,255), -1)
                             
                             
                             ## flip mano parameter
@@ -276,9 +282,9 @@ def demo():
                             mesh_cam_trans = apply_transformation(mesh_cam, rotation_matrix_flip, translation_flip)
                             parameter_pca_flip = hand_pca[hand_flip].transform(mesh_cam_trans.view(1, -1))[:, :num_comps]
                             
-                            trans_uv = perspective_projection(-trans_mesh_flip.cpu()[None, None], focal[None], princpt[None])
-                            scale =  focal.mean() / translation[:, -1]
-                            trans_mesh_unproject = calc_global_translation(trans_uv, scale, K)
+                            trans_mesh_flip = perspective_projection(-trans_mesh_flip.cpu()[None, None], focal[None], princpt[None])
+                            scale = focal.mean() / translation_flip[:, -1]
+                            trans_mesh_unproject = calc_global_translation(trans_mesh_flip, scale, K)
                             
                             if count % n_vis == 0:
                                 is_rendered = True
@@ -288,8 +294,11 @@ def demo():
                                 error = torch.norm(recover - mesh_cam).cpu()
                                 print("Hand flip error is: {}".format(error))
                                 logging.info("Hand flip error is: {}".format(error))
+                                print("Hand flip trans_mesh is: {} and trans_mesh_unproject is: {}".format(trans_mesh_flip, trans_mesh_unproject))
+                                logging.info("Hand trans_mesh is: {} and trans_mesh_unproject is: {}".format(trans_mesh_flip, trans_mesh_unproject))
                                 # mesh render
                                 rendered_img_flip = render_mesh(rendered_img_flip, recover.cpu().numpy(), mano_layer[hand_flip].faces, {'focal': focal, 'princpt': princpt})
+                                cv2.circle(rendered_img, (int(trans_uv[0, 0, 0]), int(trans_uv[0, 0, 1])), 3, (0,0,255), -1)
                                 
                             meta.append({"kpts": kpts, 
                                         "rotation": rotation_matrix.cpu(), 
@@ -359,6 +368,7 @@ def demo():
                         
                         trans_uv = perspective_projection(-trans_mesh.cpu()[None, None], focal[None], princpt[None])
                         scale =  focal.mean() / translation[:, -1]
+                        head_scales.append(scale)
                         trans_mesh_unproject = calc_global_translation(trans_uv, scale, K)
                         
                         if count % n_vis == 0:
@@ -369,8 +379,11 @@ def demo():
                             error = torch.norm(recover - mesh_cam).cpu()
                             print("Face error is: {}".format(error))
                             logging.info("Face error is: {}".format(error))
+                            print("Face trans_mesh is: {} and trans_mesh_unproject is: {}".format(trans_mesh, trans_mesh_unproject))
+                            logging.info("Face trans_mesh is: {} and trans_mesh_unproject is: {}".format(trans_mesh, trans_mesh_unproject))
                             # mesh render
                             rendered_img = render_mesh(rendered_img, recover.cpu().numpy(), flame_layer.faces, {'focal': focal, 'princpt': princpt})
+                            cv2.circle(rendered_img, (int(trans_uv[0, 0, 0]), int(trans_uv[0, 0, 1])), 3, (0,0,255), -1)
                         
                         meta.append({"kpts": kpts, 
                                     "rotation": rotation_matrix.cpu(), 
@@ -416,8 +429,14 @@ def demo():
                     
             count = count + 1
             is_rendered = False
-
-        
+    dump(hand_scales, 'models/parts/hand_scales.pkl')
+    dump(head_scales, 'models/parts/head_scales.pkl')
+    hand_scales = np.array(hand_scales)
+    head_scales = np.array(head_scales)
+    print("Hand scale mean: {} and std: {}".format(np.mean(hand_scales), np.std(hand_scales)))
+    print("Head scale mean: {} and std: {}".format(np.mean(head_scales), np.std(head_scales)))
+    logging.info("Hand scale mean: {} and std: {}".format(np.mean(hand_scales), np.std(hand_scales)))
+    logging.info("Head scale mean: {} and std: {}".format(np.mean(head_scales), np.std(head_scales)))
 
 if __name__ == "__main__":
     demo()
