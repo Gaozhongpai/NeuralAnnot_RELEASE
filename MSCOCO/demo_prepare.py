@@ -232,19 +232,21 @@ def demo():
                             mesh_cam_trans = apply_transformation(mesh_cam, rotation_matrix, translation)
                             parameter_pca = hand_pca[hand].transform(mesh_cam_trans.view(1, -1))[:, :num_comps]
                             
-                            trans_uv = perspective_projection(-trans_mesh.cpu()[None, None], focal[None], princpt[None])
-                            scale =  focal.mean() / translation[:, -1]
-                            hand_scales.append(scale)
+                            trans_uv = perspective_projection(trans_mesh.cpu()[None, None], focal[None], princpt[None])
+                            scale =  focal.mean() / trans_mesh[-1].cpu()
+                            hand_scales.append(scale.item())
                             trans_mesh_unproject = calc_global_translation(trans_uv, scale, K)
                             
                             if count % n_vis == 0:
                                 is_rendered = True
                                 recover_align = (torch.matmul(parameter_pca, hand_pca[hand].components_[:num_comps]) + hand_pca[hand].mean_).T
                                 recover_align = recover_align.view(-1, 3)
-                                recover = apply_transformation_center(recover_align, rotation_matrix, trans_mesh, is_inv=True)
+                                recover = apply_transformation_center(recover_align, rotation_matrix, trans_mesh)
                                 error = torch.norm(recover - mesh_cam).cpu()
-                                print("Hand error is: {}".format(error))
-                                logging.info("Hand error is: {}".format(error))
+                                recover_2 = apply_transformation(recover_align, rotation_matrix, translation, is_inv=True)
+                                error_2 = torch.norm(recover_2 - mesh_cam).cpu()
+                                print("Hand error is: {}, error origin is: {}".format(error, error_2))
+                                logging.info("Hand error is: {}, error origin is:".format(error, error_2))
                                 print("Hand trans_mesh is: {} and trans_mesh_unproject is: {}".format(trans_mesh, trans_mesh_unproject))
                                 logging.info("Hand trans_mesh is: {} and trans_mesh_unproject is: {}".format(trans_mesh, trans_mesh_unproject))
                                 # mesh render
@@ -282,23 +284,25 @@ def demo():
                             mesh_cam_trans = apply_transformation(mesh_cam, rotation_matrix_flip, translation_flip)
                             parameter_pca_flip = hand_pca[hand_flip].transform(mesh_cam_trans.view(1, -1))[:, :num_comps]
                             
-                            trans_mesh_flip = perspective_projection(-trans_mesh_flip.cpu()[None, None], focal[None], princpt[None])
-                            scale = focal.mean() / translation_flip[:, -1]
-                            trans_mesh_unproject = calc_global_translation(trans_mesh_flip, scale, K)
+                            trans_uv = perspective_projection(trans_mesh_flip.cpu()[None, None], focal[None], princpt[None])
+                            scale = focal.mean() / trans_mesh_flip[-1].cpu()
+                            trans_mesh_unproject = calc_global_translation(trans_uv, scale, K)
                             
                             if count % n_vis == 0:
                                 is_rendered = True
                                 recover_align = (torch.matmul(parameter_pca_flip, hand_pca[hand_flip].components_[:num_comps]) + hand_pca[hand_flip].mean_).T
                                 recover_align = recover_align.view(-1, 3)
-                                recover = apply_transformation_center(recover_align, rotation_matrix_flip, trans_mesh_flip, is_inv=True)
+                                recover = apply_transformation_center(recover_align, rotation_matrix_flip, trans_mesh_flip)
                                 error = torch.norm(recover - mesh_cam).cpu()
-                                print("Hand flip error is: {}".format(error))
-                                logging.info("Hand flip error is: {}".format(error))
+                                recover_2 = apply_transformation(recover_align, rotation_matrix_flip, translation_flip, is_inv=True)
+                                error_2 = torch.norm(recover_2 - mesh_cam).cpu()
+                                print("Hand flip error is: {}, error orgin is: {}".format(error, error_2))
+                                logging.info("Hand flip error is: {}, error orgin is:".format(error, error_2))
                                 print("Hand flip trans_mesh is: {} and trans_mesh_unproject is: {}".format(trans_mesh_flip, trans_mesh_unproject))
                                 logging.info("Hand trans_mesh is: {} and trans_mesh_unproject is: {}".format(trans_mesh_flip, trans_mesh_unproject))
                                 # mesh render
                                 rendered_img_flip = render_mesh(rendered_img_flip, recover.cpu().numpy(), mano_layer[hand_flip].faces, {'focal': focal, 'princpt': princpt})
-                                cv2.circle(rendered_img, (int(trans_uv[0, 0, 0]), int(trans_uv[0, 0, 1])), 3, (0,0,255), -1)
+                                cv2.circle(rendered_img_flip, (int(trans_uv[0, 0, 0]), int(trans_uv[0, 0, 1])), 3, (0,0,255), -1)
                                 
                             meta.append({"kpts": kpts, 
                                         "rotation": rotation_matrix.cpu(), 
@@ -346,8 +350,8 @@ def demo():
                         expr = torch.FloatTensor(expr).view(1,-1) # facial expression code
                         shape = torch.FloatTensor(shape).view(1,-1) # FLAME shape parameter
                         trans = torch.FloatTensor(trans).view(1,-1) # translation vector
-                        focal = torch.FloatTensor(mano_param['cam_param']['focal'])
-                        princpt = torch.FloatTensor(mano_param['cam_param']['princpt'])
+                        focal = torch.FloatTensor(flame_param['cam_param']['focal'])
+                        princpt = torch.FloatTensor(flame_param['cam_param']['princpt'])
                         
                         K = torch.zeros([1, 3, 3])
                         K[:,0,0] = focal[None][:,0]
@@ -359,26 +363,26 @@ def demo():
                         with torch.no_grad():
                             output = flame_layer(betas=shape, jaw_pose=jaw_pose, global_orient=root_pose, transl=trans, expression=expr)
                         mesh_cam = output.vertices[0].cuda()
-                        focal = flame_param['cam_param']['focal']
-                        princpt = flame_param['cam_param']['princpt']
                         
                         rotation_matrix, translation, trans_mesh = frontalize_V2(mesh_cam, head_template)
                         mesh_cam_trans = apply_transformation(mesh_cam, rotation_matrix, translation)
                         parameter_pca = head_pca.transform(mesh_cam_trans.view(1, -1))[:, :num_comps]
                         
-                        trans_uv = perspective_projection(-trans_mesh.cpu()[None, None], focal[None], princpt[None])
-                        scale =  focal.mean() / translation[:, -1]
-                        head_scales.append(scale)
+                        trans_uv = perspective_projection(trans_mesh.cpu()[None, None], focal[None], princpt[None])
+                        scale =  focal.mean() / trans_mesh[-1].cpu()
+                        head_scales.append(scale.item())
                         trans_mesh_unproject = calc_global_translation(trans_uv, scale, K)
                         
                         if count % n_vis == 0:
                             is_rendered = True
                             recover_align = (torch.matmul(parameter_pca, head_pca.components_[:num_comps]) + head_pca.mean_).T
                             recover_align = recover_align.view(-1, 3)
-                            recover = apply_transformation_center(recover_align, rotation_matrix, trans_mesh, is_inv=True)
+                            recover = apply_transformation_center(recover_align, rotation_matrix, trans_mesh)
                             error = torch.norm(recover - mesh_cam).cpu()
-                            print("Face error is: {}".format(error))
-                            logging.info("Face error is: {}".format(error))
+                            recover_2 = apply_transformation(recover_align, rotation_matrix, translation, is_inv=True)
+                            error_2 = torch.norm(recover_2 - mesh_cam).cpu()
+                            print("Face error is: {}, error origin is: {}".format(error, error_2))
+                            logging.info("Face error is: {}, error origin is: {}".format(error, error_2))
                             print("Face trans_mesh is: {} and trans_mesh_unproject is: {}".format(trans_mesh, trans_mesh_unproject))
                             logging.info("Face trans_mesh is: {} and trans_mesh_unproject is: {}".format(trans_mesh, trans_mesh_unproject))
                             # mesh render

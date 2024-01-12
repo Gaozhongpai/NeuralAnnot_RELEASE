@@ -388,7 +388,7 @@ def frontalize_V2(source, target):
     rotation_matrix = torch.matmul(vh.T, torch.matmul(reflection_matrix, u.T))
     
     translation = centroid_target - torch.matmul(rotation_matrix, centroid_source)
-    return rotation_matrix, translation, -centroid_source
+    return rotation_matrix, translation, centroid_source
 
 ### translation relative to the rotated mesh
 def apply_transformation(points, rotation_matrix, translation, is_inv=False):
@@ -400,13 +400,8 @@ def apply_transformation(points, rotation_matrix, translation, is_inv=False):
 
 
 ### translation relative to the origin
-def apply_transformation_center(points, rotation_matrix, trans_mesh, is_inv=False):
+def apply_transformation_center(points, rotation_matrix, trans_mesh):
     # Calculate centroids
-    centroid_points = torch.mean(points, dim=0)
-    centered_points = points - centroid_points 
-    if is_inv:
-        rotation_matrix = rotation_matrix.T
-        trans_mesh = -trans_mesh
-    rotated_points =  torch.matmul(centered_points, rotation_matrix)
-    rotated_points_back = rotated_points + centroid_points
-    return rotated_points_back + trans_mesh
+    rotated_points =  torch.matmul(points, rotation_matrix)
+    centered_points = rotated_points - torch.mean(rotated_points, dim=0) 
+    return centered_points + trans_mesh
