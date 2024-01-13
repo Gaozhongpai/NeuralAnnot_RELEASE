@@ -399,7 +399,7 @@ def apply_transformation(points, rotation_matrix, translation, is_inv=False):
     return points
 
 
-### translation relative to the origin
+### transform from origin to mesh location
 def apply_transformation_center(points, rotation_matrix, trans_mesh):
     # Calculate centroids
     rotated_points =  torch.matmul(points, rotation_matrix)

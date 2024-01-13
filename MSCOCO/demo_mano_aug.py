@@ -182,22 +182,25 @@ def demo():
         canvas[padh:height, padw:weight] = img[:height-padh, :weight-padw]
         rendered_img = canvas.copy()        
         
-        princpt = princpt * r + torch.FloatTensor([padw, padh])   ## scale and shift camera center
-        focal = focal * r   ## scale the camera focus
-        K = torch.zeros([1, 3, 3])
-        K[:,0,0] = focal[None][:,0]
-        K[:,1,1] = focal[None][:,1]
-        K[:,2,2] = 1.
-        K[:,:-1, -1] = princpt[None]
+        focal_2 = torch.FloatTensor([5000, 5000])
+        princpt_2 = torch.FloatTensor([weight/2, height/2])
+        # ===> very important ### to calucate the distributino of trans_uv and scale <=== #
+        K_2 = torch.zeros([1, 3, 3])
+        K_2[:,0,0] = focal_2[None][:,0]
+        K_2[:,1,1] = focal_2[None][:,1]
+        K_2[:,2,2] = 1.
+        K_2[:,:-1, -1] = princpt_2[None]
         
+        #### only needs to change trans_uv and scale ###############
+        ############################################################
         trans_uv = trans_uv * r + torch.FloatTensor([padw, padh])   ## scale and shift trans_uv
         scale = scale * r  ## scale the distance
-        trans_mesh_unproject = calc_global_translation(trans_uv, scale, K)
+        trans_mesh_unproject = calc_global_translation(trans_uv, scale, K_2)
         
         recover = apply_transformation_center(recover_align, rotation_matrix, trans_mesh_unproject.cuda()[0])
 
         # rendered_img = render_mesh(rendered_img, mesh_cam.cpu().numpy(), mano_layer[hand_type].faces, {'focal': focal, 'princpt': princpt})
-        rendered_img = render_mesh(rendered_img, recover.cpu().numpy(), mano_layer[hand_type].faces, {'focal': focal, 'princpt': princpt})
+        rendered_img = render_mesh(rendered_img, recover.cpu().numpy(), mano_layer[hand_type].faces, {'focal': focal_2, 'princpt': princpt_2})
         cv2.circle(rendered_img, (int(trans_uv[0, 0, 0]), int(trans_uv[0, 0, 1])), 3, (0,0,255), -1)
         # img_2d = draw_skeleton(img, joint_2d[0].numpy(), True)
         

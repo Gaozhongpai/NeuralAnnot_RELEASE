@@ -150,8 +150,8 @@ def demo():
     for json_file in sorted(Path(json_dir).resolve().glob('*_v1.0.json')):
         print(json_file)
         logging.info(json_file)
-        db = COCO(json_file)
-        if "train" in json_file:
+        
+        if "train" in json_file.name:
             fn = Path(save_dir) / 'labels' / json_file.stem.replace('train_v1.0', 'mesh_train2017')  # folder name
         else:
             fn = Path(save_dir) / 'labels' / json_file.stem.replace('val_v1.0', 'mesh_val2017')  # folder name
@@ -167,9 +167,21 @@ def demo():
         count = 0    
         n_vis = 100
         is_rendered = False
+        
+        db = COCO(json_file)
         for img_id, anns in tqdm(db.imgToAnns.items()):
             img = db.imgs[img_id]
             h, w, f = img['height'], img['width'], img['file_name']
+            
+            focal_2 = torch.FloatTensor([5000, 5000])
+            princpt_2 = torch.FloatTensor([w/2, h/2])
+            # ===> very important ### to calucate the distributino of trans_uv and scale <=== #
+            K = torch.zeros([1, 3, 3])
+            K[:,0,0] = focal_2[None][:,0]
+            K[:,1,1] = focal_2[None][:,1]
+            K[:,2,2] = 1.
+            K[:,:-1, -1] = princpt_2[None]        
+        
             img_path = osp.join('dataset/coco/train2017', f)
             # print(img_path)
             if count % n_vis == 0:
@@ -222,12 +234,6 @@ def demo():
                             focal = torch.FloatTensor(mano_param['cam_param']['focal'])
                             princpt = torch.FloatTensor(mano_param['cam_param']['princpt'])
                             
-                            K = torch.zeros([1, 3, 3])
-                            K[:,0,0] = focal[None][:,0]
-                            K[:,1,1] = focal[None][:,1]
-                            K[:,2,2] = 1.
-                            K[:,:-1, -1] = princpt[None]
-                        
                             # get mesh and joint coordinates
                             with torch.no_grad():
                                 output = mano_layer[hand](betas=shape, hand_pose=hand_pose.view(1,-1), global_orient=root_pose, transl=trans)
@@ -255,7 +261,8 @@ def demo():
                                 print("Hand trans_mesh is: {} and trans_mesh_unproject is: {}".format(trans_mesh, trans_mesh_unproject))
                                 logging.info("Hand trans_mesh is: {} and trans_mesh_unproject is: {}".format(trans_mesh, trans_mesh_unproject))
                                 # mesh render
-                                rendered_img = render_mesh(rendered_img, recover.cpu().numpy(), mano_layer[hand].faces, {'focal': focal, 'princpt': princpt})
+                                recover = apply_transformation_center(recover_align, rotation_matrix, trans_mesh_unproject.squeeze().cuda())
+                                rendered_img = render_mesh(rendered_img, recover.cpu().numpy(), mano_layer[hand].faces, {'focal': focal_2, 'princpt': princpt_2})
                                 cv2.circle(rendered_img, (int(trans_uv[0, 0, 0]), int(trans_uv[0, 0, 1])), 3, (0,0,255), -1)
                             
                             
@@ -272,12 +279,6 @@ def demo():
                             focal = torch.FloatTensor(mano_param['cam_param']['focal'])
                             princpt = torch.FloatTensor(mano_param['cam_param']['princpt'])
                             princpt[0] = w - princpt[0]
-                            
-                            K = torch.zeros([1, 3, 3])
-                            K[:,0,0] = focal[None][:,0]
-                            K[:,1,1] = focal[None][:,1]
-                            K[:,2,2] = 1.
-                            K[:,:-1, -1] = princpt[None]
                         
                             hand_flip = "right" if hand == "left" else "left"
                             # get mesh and joint coordinates
@@ -286,12 +287,13 @@ def demo():
                             mesh_cam = output.vertices[0].cuda()
                             
                             rotation_matrix_flip, translation_flip, trans_mesh_flip = frontalize_V2(mesh_cam, hand_template[hand_flip])
+                            
                             mesh_cam_trans = apply_transformation(mesh_cam, rotation_matrix_flip, translation_flip)
                             parameter_pca_flip = hand_pca[hand_flip].transform(mesh_cam_trans.view(1, -1))[:, :num_comps]
                             
-                            trans_uv = perspective_projection(trans_mesh_flip.cpu()[None, None], focal[None], princpt[None])
-                            scale = focal.mean() / trans_mesh_flip[-1].cpu()
-                            trans_mesh_unproject = calc_global_translation(trans_uv, scale, K)
+                            trans_uv_flip = perspective_projection(trans_mesh_flip.cpu()[None, None], focal[None], princpt[None])
+                            scale_flip = focal.mean() / trans_mesh_flip[-1].cpu()
+                            trans_mesh_unproject = calc_global_translation(trans_uv_flip, scale_flip, K)
                             
                             if count % n_vis == 0:
                                 is_rendered = True
@@ -306,22 +308,23 @@ def demo():
                                 print("Hand flip trans_mesh is: {} and trans_mesh_unproject is: {}".format(trans_mesh_flip, trans_mesh_unproject))
                                 logging.info("Hand trans_mesh is: {} and trans_mesh_unproject is: {}".format(trans_mesh_flip, trans_mesh_unproject))
                                 # mesh render
-                                rendered_img_flip = render_mesh(rendered_img_flip, recover.cpu().numpy(), mano_layer[hand_flip].faces, {'focal': focal, 'princpt': princpt})
-                                cv2.circle(rendered_img_flip, (int(trans_uv[0, 0, 0]), int(trans_uv[0, 0, 1])), 3, (0,0,255), -1)
+                                recover = apply_transformation_center(recover_align, rotation_matrix_flip, trans_mesh_unproject.squeeze().cuda())
+                                rendered_img_flip = render_mesh(rendered_img_flip, recover.cpu().numpy(), mano_layer[hand_flip].faces, {'focal': focal_2, 'princpt': princpt_2})
+                                cv2.circle(rendered_img_flip, (int(trans_uv_flip[0, 0, 0]), int(trans_uv_flip[0, 0, 1])), 3, (0,0,255), -1)
                                 
-                            meta.append({"kpts": kpts, 
-                                        "rotation": rotation_matrix.cpu(), 
-                                        "trans": trans_mesh.cpu(),
+                            meta.append({"rotation": rotation_matrix.cpu(), 
+                                        "trans_uv": trans_uv,
+                                        "scale": scale,
                                         "parameter_pca": parameter_pca.cpu(),
-                                        "focal": focal,
-                                        "princpt": princpt,
+                                        "rotation_flip": rotation_matrix_flip.cpu(), 
+                                        "trans_uv_flip": trans_uv_flip,
+                                        "scale_flip": scale_flip,
+                                        "parameter_pca_flip": parameter_pca_flip.cpu(),
+                                        "kpts": kpts, 
                                         "cls": cls_hand,
                                         "id": ann['id'],
                                         "box": lbox,
-                                        "is_mesh": is_mesh,
-                                        "rotation_flip": rotation_matrix_flip.cpu(), 
-                                        "trans_flip": trans_mesh_flip.cpu(),
-                                        "parameter_pca_flip": parameter_pca_flip.cpu()})
+                                        "is_mesh": is_mesh})
                             
                         else:
                             print(f)
@@ -358,12 +361,6 @@ def demo():
                         focal = torch.FloatTensor(flame_param['cam_param']['focal'])
                         princpt = torch.FloatTensor(flame_param['cam_param']['princpt'])
                         
-                        K = torch.zeros([1, 3, 3])
-                        K[:,0,0] = focal[None][:,0]
-                        K[:,1,1] = focal[None][:,1]
-                        K[:,2,2] = 1.
-                        K[:,:-1, -1] = princpt[None]
-                        
                         # get mesh and joint coordinates
                         with torch.no_grad():
                             output = flame_layer(betas=shape, jaw_pose=jaw_pose, global_orient=root_pose, transl=trans, expression=expr)
@@ -391,15 +388,15 @@ def demo():
                             print("Face trans_mesh is: {} and trans_mesh_unproject is: {}".format(trans_mesh, trans_mesh_unproject))
                             logging.info("Face trans_mesh is: {} and trans_mesh_unproject is: {}".format(trans_mesh, trans_mesh_unproject))
                             # mesh render
-                            rendered_img = render_mesh(rendered_img, recover.cpu().numpy(), flame_layer.faces, {'focal': focal, 'princpt': princpt})
+                            recover = apply_transformation_center(recover_align, rotation_matrix, trans_mesh_unproject.squeeze().cuda())
+                            rendered_img = render_mesh(rendered_img, recover.cpu().numpy(), flame_layer.faces, {'focal': focal_2, 'princpt': princpt_2})
                             cv2.circle(rendered_img, (int(trans_uv[0, 0, 0]), int(trans_uv[0, 0, 1])), 3, (0,0,255), -1)
                         
-                        meta.append({"kpts": kpts, 
-                                    "rotation": rotation_matrix.cpu(), 
-                                    "trans": trans_mesh.cpu(),
+                        meta.append({"rotation": rotation_matrix.cpu(), 
+                                    "trans_uv": trans_uv,
+                                    "scale": scale,
                                     "parameter_pca": parameter_pca.cpu(),
-                                    "focal": focal,
-                                    "princpt": princpt,
+                                    "kpts": kpts, 
                                     "cls": 3,
                                     "id": ann['id'],
                                     "box": fbox,
@@ -424,10 +421,10 @@ def demo():
                 
             # Write
             if len(bboxes):
-                if "train" in json_file:
-                    filelist = (Path(save_dir) / json_file.stem).with_suffix('.txt').replace("train_v1.0", "mesh_train2017")
+                if "train" in json_file.name:
+                    filelist = (Path(save_dir) / json_file.stem.replace("train_v1.0", "mesh_train2017")).with_suffix('.txt')
                 else:
-                    filelist = (Path(save_dir) / json_file.stem).with_suffix('.txt').replace("val_v1.0", "mesh_val2017")
+                    filelist = (Path(save_dir) / json_file.stem.replace("val_v1.0", "mesh_val2017")).with_suffix('.txt')
                 with open(filelist, 'a') as file_list:
                     file_list.write(os.path.join('./images', json_file.stem.split('_')[2] + '2017', f) + '\n')  ########################
                 dump(meta, (fn / f).with_suffix('.pkl'))

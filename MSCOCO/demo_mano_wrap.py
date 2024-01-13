@@ -159,18 +159,27 @@ def demo():
         # trans_uv = perspective_projection(-trans_mesh[None, None], focal[None], princpt[None])
         trans_uv = perspective_projection(trans_mesh.cpu()[None, None], focal[None], princpt[None])
         scale =  focal.mean() / trans_mesh[-1].cpu()
-        trans_mesh_unproject = calc_global_translation(trans_uv, scale, K)
         
-        recover_align = (torch.matmul(parameter_pca, hand_pca[hand_type].components_[:num_comps]) + hand_pca[hand_type].mean_).T
-        recover_align = recover_align.view(-1, 3)
-        recover = apply_transformation_center(recover_align, rotation_matrix, trans_mesh)
-
         # mesh render
         img = cv2.imread(img_path)
         rendered_img = img.copy()
+        _, h, w = img.shape
+        focal_2 = torch.FloatTensor([5000, 5000])
+        princpt_2 = torch.FloatTensor([w/2, h/2])
+        # ===> very important ### to calucate the distributino of trans_uv and scale <=== #
+        K_2 = torch.zeros([1, 3, 3])
+        K_2[:,0,0] = focal_2[None][:,0]
+        K_2[:,1,1] = focal_2[None][:,1]
+        K_2[:,2,2] = 1.
+        K_2[:,:-1, -1] = princpt_2[None]
+        trans_mesh_unproject = calc_global_translation(trans_uv, scale, K_2)
+        
+        recover_align = (torch.matmul(parameter_pca, hand_pca[hand_type].components_[:num_comps]) + hand_pca[hand_type].mean_).T
+        recover_align = recover_align.view(-1, 3)
+        recover = apply_transformation_center(recover_align, rotation_matrix, trans_mesh_unproject.squeeze().cuda())
         
         # rendered_img = render_mesh(rendered_img, mesh_cam.cpu().numpy(), mano_layer[hand_type].faces, {'focal': focal, 'princpt': princpt})
-        rendered_img = render_mesh(rendered_img, recover.cpu().numpy(), mano_layer[hand_type].faces, {'focal': focal, 'princpt': princpt})
+        rendered_img = render_mesh(rendered_img, recover.cpu().numpy(), mano_layer[hand_type].faces, {'focal': focal_2, 'princpt': princpt_2})
         cv2.circle(rendered_img, (int(trans_uv[0, 0, 0]), int(trans_uv[0, 0, 1])), 3, (0,0,255), -1)
         cv2.circle(rendered_img, (int(joint_2d[0, 0, 0]), int(joint_2d[0, 0, 1])), 3, (255,0,0), -1)
         # img_2d = draw_skeleton(img, joint_2d[0].numpy(), True)
