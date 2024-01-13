@@ -158,24 +158,50 @@ def demo():
 
         # trans_uv = perspective_projection(-trans_mesh[None, None], focal[None], princpt[None])
         trans_uv = perspective_projection(trans_mesh.cpu()[None, None], focal[None], princpt[None])
-        scale =  focal.mean() / trans_mesh[-1].cpu()
+        scale = focal.mean() / trans_mesh[-1].cpu()
         trans_mesh_unproject = calc_global_translation(trans_uv, scale, K)
         
         recover_align = (torch.matmul(parameter_pca, hand_pca[hand_type].components_[:num_comps]) + hand_pca[hand_type].mean_).T
         recover_align = recover_align.view(-1, 3)
-        recover = apply_transformation_center(recover_align, rotation_matrix, trans_mesh)
-
+        
         # mesh render
         img = cv2.imread(img_path)
-        rendered_img = img.copy()
         
+        ###################
+        r = 1.5
+        padw = 55
+        padh = 98
+        pad_value = 114  # Padding color value
+
+        h0, w0 = img.shape[:2]  # orig hw
+        img = cv2.resize(img, (int(w0 * r), int(h0 * r)), interpolation=cv2.INTER_LINEAR)
+        
+        # Create a new canvas with the size of the original image plus padding
+        height, weight = img.shape[:2]
+        canvas = np.full((height, weight, 3), pad_value, dtype=np.uint8)
+        canvas[padh:height, padw:weight] = img[:height-padh, :weight-padw]
+        rendered_img = canvas.copy()        
+        
+        princpt = princpt * r + torch.FloatTensor([padw, padh])   ## scale and shift camera center
+        focal = focal / r   ## scale the camera focus
+        K = torch.zeros([1, 3, 3])
+        K[:,0,0] = focal[None][:,0]
+        K[:,1,1] = focal[None][:,1]
+        K[:,2,2] = 1.
+        K[:,:-1, -1] = princpt[None]
+        
+        trans_uv = trans_uv * r + torch.FloatTensor([padw, padh])   ## scale and shift trans_uv
+        scale = scale * r  ## scale the distance
+        trans_mesh_unproject = calc_global_translation(trans_uv, scale, K)
+        
+        recover = apply_transformation_center(recover_align, rotation_matrix, trans_mesh_unproject.cuda()[0])
+
         # rendered_img = render_mesh(rendered_img, mesh_cam.cpu().numpy(), mano_layer[hand_type].faces, {'focal': focal, 'princpt': princpt})
         rendered_img = render_mesh(rendered_img, recover.cpu().numpy(), mano_layer[hand_type].faces, {'focal': focal, 'princpt': princpt})
         cv2.circle(rendered_img, (int(trans_uv[0, 0, 0]), int(trans_uv[0, 0, 1])), 3, (0,0,255), -1)
-        cv2.circle(rendered_img, (int(joint_2d[0, 0, 0]), int(joint_2d[0, 0, 1])), 3, (255,0,0), -1)
         # img_2d = draw_skeleton(img, joint_2d[0].numpy(), True)
         
-        cv2.imwrite('mano_' + hand_type + '.jpg', rendered_img)
+        cv2.imwrite('mano_' + hand_type + '_aug.jpg', rendered_img)
         
 if __name__ == "__main__":
     demo()
