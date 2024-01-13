@@ -165,7 +165,7 @@ def demo():
         fnvis.mkdir()
         
         count = 0    
-        n_vis = 100
+        n_vis = 500
         is_rendered = False
         
         db = COCO(json_file)
@@ -313,11 +313,11 @@ def demo():
                                 cv2.circle(rendered_img_flip, (int(trans_uv_flip[0, 0, 0]), int(trans_uv_flip[0, 0, 1])), 3, (0,0,255), -1)
                                 
                             meta.append({"rotation": rotation_matrix.cpu(), 
-                                        "trans_uv": trans_uv,
+                                        "trans_uv": trans_uv.squeeze() / torch.tensor([w, h]),
                                         "scale": scale,
                                         "parameter_pca": parameter_pca.cpu(),
                                         "rotation_flip": rotation_matrix_flip.cpu(), 
-                                        "trans_uv_flip": trans_uv_flip,
+                                        "trans_uv_flip": trans_uv_flip.squeeze() / torch.tensor([w, h]),
                                         "scale_flip": scale_flip,
                                         "parameter_pca_flip": parameter_pca_flip.cpu(),
                                         "kpts": kpts, 
@@ -393,7 +393,7 @@ def demo():
                             cv2.circle(rendered_img, (int(trans_uv[0, 0, 0]), int(trans_uv[0, 0, 1])), 3, (0,0,255), -1)
                         
                         meta.append({"rotation": rotation_matrix.cpu(), 
-                                    "trans_uv": trans_uv,
+                                    "trans_uv": trans_uv.squeeze() / torch.tensor([w, h]),
                                     "scale": scale,
                                     "parameter_pca": parameter_pca.cpu(),
                                     "kpts": kpts, 

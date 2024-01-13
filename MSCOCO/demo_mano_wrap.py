@@ -119,7 +119,8 @@ def demo():
     # ann = example['ann']
     img = example['img']
     img_path = example['img_path']
-    
+    w, h = img['width'], img['height']
+
     for hand_type in ('right', 'left'):
         # mano parameter
         mano_param = mano_params[str(target_aid)][hand_type]

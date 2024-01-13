@@ -10746,3 +10746,104 @@
 2024-01-13 21:33:12,536:INFO:Hand trans_mesh is: tensor([0.0342, 0.0065, 3.8398], device='cuda:0') and trans_mesh_unproject is: tensor([[[-1.8936,  0.0740, 32.8186]]])
 2024-01-13 21:33:15,946:INFO:Hand error is: 0.059082310646772385, error origin is:
 2024-01-13 21:33:15,949:INFO:Hand trans_mesh is: tensor([ 3.1084e-03, -1.0777e-03,  3.2581e+00], device='cuda:0') and trans_mesh_unproject is: tensor([[[ 1.0901, -0.0781, 21.1018]]])
+2024-01-13 21:33:19,212:INFO:Hand flip error is: 0.051461294293403625, error orgin is:
+2024-01-13 21:33:19,215:INFO:Hand trans_mesh is: tensor([-1.8764e-03, -1.7184e-03,  3.2580e+00], device='cuda:0') and trans_mesh_unproject is: tensor([[[-1.0889, -0.0787, 21.1012]]])
+2024-01-13 21:33:22,695:INFO:Face error is: 0.11489608883857727, error origin is: 0.11489620804786682
+2024-01-13 21:33:22,697:INFO:Face trans_mesh is: tensor([-0.0050, -0.0361,  3.4658], device='cuda:0') and trans_mesh_unproject is: tensor([[[ 1.0073, -0.1811, 25.0055]]])
+2024-01-13 21:33:40,526:INFO:Face error is: 0.14060401916503906, error origin is: 0.14060412347316742
+2024-01-13 21:33:40,530:INFO:Face trans_mesh is: tensor([-0.0041, -0.0404,  3.7448], device='cuda:0') and trans_mesh_unproject is: tensor([[[-9.3154e-04, -1.2677e-02,  4.0432e+00]]])
+2024-01-13 21:34:04,942:INFO:Hand error is: 0.04398438334465027, error origin is:
+2024-01-13 21:34:04,945:INFO:Hand trans_mesh is: tensor([-2.2169e-02, -2.1559e-03,  3.6029e+00], device='cuda:0') and trans_mesh_unproject is: tensor([[[-0.0338,  0.0464,  8.6071]]])
+2024-01-13 21:34:09,314:INFO:Hand flip error is: 0.039960265159606934, error orgin is:
+2024-01-13 21:34:09,317:INFO:Hand trans_mesh is: tensor([ 2.2162e-02, -2.1391e-03,  3.6030e+00], device='cuda:0') and trans_mesh_unproject is: tensor([[[0.0338, 0.0464, 8.6072]]])
+2024-01-13 21:34:12,413:INFO:Face error is: 0.16423387825489044, error origin is: 0.16423381865024567
+2024-01-13 21:34:12,416:INFO:Face trans_mesh is: tensor([ 0.0133, -0.0242,  3.3758], device='cuda:0') and trans_mesh_unproject is: tensor([[[ 0.0178, -0.2947,  9.9935]]])
+2024-01-13 21:34:24,442:INFO:Hand error is: 0.029602836817502975, error origin is:
+2024-01-13 21:34:24,445:INFO:Hand trans_mesh is: tensor([ 0.0111, -0.0064,  2.8331], device='cuda:0') and trans_mesh_unproject is: tensor([[[-3.7860e-01,  3.3656e-02,  3.7574e+01]]])
+2024-01-13 21:34:28,900:INFO:Hand flip error is: 0.03336561098694801, error orgin is:
+2024-01-13 21:34:28,903:INFO:Hand trans_mesh is: tensor([-0.0092, -0.0060,  2.8326], device='cuda:0') and trans_mesh_unproject is: tensor([[[3.8044e-01, 3.4008e-02, 3.7567e+01]]])
+2024-01-13 21:35:00,324:INFO:Hand error is: 0.06129651516675949, error origin is:
+2024-01-13 21:35:00,326:INFO:Hand trans_mesh is: tensor([-1.0661e-03, -2.8990e-02,  3.1944e+00], device='cuda:0') and trans_mesh_unproject is: tensor([[[-0.0100, -0.1442,  8.8733]]])
+2024-01-13 21:35:05,099:INFO:Hand flip error is: 0.0517243966460228, error orgin is:
+2024-01-13 21:35:05,101:INFO:Hand trans_mesh is: tensor([ 2.0716e-03, -2.9664e-02,  3.1946e+00], device='cuda:0') and trans_mesh_unproject is: tensor([[[ 0.0110, -0.1449,  8.8739]]])
+2024-01-13 21:35:08,638:INFO:Hand error is: 0.0534970797598362, error origin is:
+2024-01-13 21:35:08,642:INFO:Hand trans_mesh is: tensor([ 0.0102, -0.0280,  2.9338], device='cuda:0') and trans_mesh_unproject is: tensor([[[-0.1014, -0.1720,  9.1452]]])
+2024-01-13 21:35:11,700:INFO:Hand flip error is: 0.06141311302781105, error orgin is:
+2024-01-13 21:35:11,703:INFO:Hand trans_mesh is: tensor([-0.0101, -0.0283,  2.9338], device='cuda:0') and trans_mesh_unproject is: tensor([[[ 0.1016, -0.1724,  9.1453]]])
+2024-01-13 21:35:15,580:INFO:Face error is: 0.12326064705848694, error origin is: 0.12326072156429291
+2024-01-13 21:35:15,583:INFO:Face trans_mesh is: tensor([-3.5899e-03, -3.2476e-02,  3.9217e+00], device='cuda:0') and trans_mesh_unproject is: tensor([[[-0.0545, -0.3264,  9.8437]]])
+2024-01-13 21:35:36,607:INFO:Face error is: 0.13903066515922546, error origin is: 0.13903076946735382
+2024-01-13 21:35:36,610:INFO:Face trans_mesh is: tensor([-1.4748e-03, -3.4019e-02,  3.7961e+00], device='cuda:0') and trans_mesh_unproject is: tensor([[[-0.0261, -0.1232,  4.8593]]])
+2024-01-13 21:36:09,191:INFO:Hand error is: 0.03324571251869202, error origin is:
+2024-01-13 21:36:09,195:INFO:Hand trans_mesh is: tensor([-4.4592e-04,  1.4181e-04,  3.9924e+00], device='cuda:0') and trans_mesh_unproject is: tensor([[[ 4.1656e-02, -1.3054e+00,  5.1850e+01]]])
+2024-01-13 21:36:14,058:INFO:Hand flip error is: 0.030564364045858383, error orgin is:
+2024-01-13 21:36:14,061:INFO:Hand trans_mesh is: tensor([5.7232e-05, 9.9043e-04, 3.9924e+00], device='cuda:0') and trans_mesh_unproject is: tensor([[[-4.2044e-02, -1.3046e+00,  5.1849e+01]]])
+2024-01-13 21:36:27,912:INFO:Hand error is: 0.05134936794638634, error origin is:
+2024-01-13 21:36:27,915:INFO:Hand trans_mesh is: tensor([1.8588e-02, 7.3465e-04, 3.5525e+00], device='cuda:0') and trans_mesh_unproject is: tensor([[[0.0844, 0.1122, 9.3095]]])
+2024-01-13 21:36:32,453:INFO:Hand flip error is: 0.04616551473736763, error orgin is:
+2024-01-13 21:36:32,455:INFO:Hand trans_mesh is: tensor([-1.8462e-02,  7.2319e-04,  3.5522e+00], device='cuda:0') and trans_mesh_unproject is: tensor([[[-0.0843,  0.1121,  9.3088]]])
+2024-01-13 21:36:35,885:INFO:Hand error is: 0.029756659641861916, error origin is:
+2024-01-13 21:36:35,888:INFO:Hand trans_mesh is: tensor([ 0.0174, -0.0104,  3.0715], device='cuda:0') and trans_mesh_unproject is: tensor([[[0.1371, 0.1315, 8.2435]]])
+2024-01-13 21:36:39,290:INFO:Hand flip error is: 0.034303683787584305, error orgin is:
+2024-01-13 21:36:39,293:INFO:Hand trans_mesh is: tensor([-0.0159, -0.0100,  3.0709], device='cuda:0') and trans_mesh_unproject is: tensor([[[-0.1356,  0.1319,  8.2419]]])
+2024-01-13 21:36:42,140:INFO:Face error is: 0.28825029730796814, error origin is: 0.288250207901001
+2024-01-13 21:36:42,143:INFO:Face trans_mesh is: tensor([-1.9121e-03, -5.3833e-02,  4.0898e+00], device='cuda:0') and trans_mesh_unproject is: tensor([[[-0.1001, -0.1802,  8.0826]]])
+2024-01-13 21:36:46,901:INFO:Face error is: 0.13029545545578003, error origin is: 0.13029581308364868
+2024-01-13 21:36:46,904:INFO:Face trans_mesh is: tensor([-2.3138e-03, -3.6858e-02,  3.8262e+00], device='cuda:0') and trans_mesh_unproject is: tensor([[[ 0.0610, -0.2033, 10.6402]]])
+2024-01-13 21:37:43,630:INFO:Face error is: 0.11929432302713394, error origin is: 0.1192946583032608
+2024-01-13 21:37:43,633:INFO:Face trans_mesh is: tensor([-1.9179e-03, -3.2865e-02,  4.1133e+00], device='cuda:0') and trans_mesh_unproject is: tensor([[[-1.1540,  0.1299, 23.6943]]])
+2024-01-13 21:37:48,867:INFO:Hand error is: 0.045009251683950424, error origin is:
+2024-01-13 21:37:48,870:INFO:Hand trans_mesh is: tensor([-0.0053,  0.0383,  3.0890], device='cuda:0') and trans_mesh_unproject is: tensor([[[-0.4124,  0.7591, 18.4751]]])
+2024-01-13 21:37:52,669:INFO:Hand flip error is: 0.03871091455221176, error orgin is:
+2024-01-13 21:37:52,675:INFO:Hand trans_mesh is: tensor([0.0060, 0.0386, 3.0892], device='cuda:0') and trans_mesh_unproject is: tensor([[[ 0.4131,  0.7595, 18.4759]]])
+2024-01-13 21:37:55,925:INFO:Hand error is: 0.06632815301418304, error origin is:
+2024-01-13 21:37:55,928:INFO:Hand trans_mesh is: tensor([0.0170, 0.0084, 2.7100], device='cuda:0') and trans_mesh_unproject is: tensor([[[-0.6529,  0.2083, 14.7124]]])
+2024-01-13 21:37:59,101:INFO:Hand flip error is: 0.0757550522685051, error orgin is:
+2024-01-13 21:37:59,104:INFO:Hand trans_mesh is: tensor([-0.0173,  0.0076,  2.7093], device='cuda:0') and trans_mesh_unproject is: tensor([[[ 0.6524,  0.2075, 14.7082]]])
+2024-01-13 21:38:02,577:INFO:Face error is: 0.12188461422920227, error origin is: 0.12188505381345749
+2024-01-13 21:38:02,580:INFO:Face trans_mesh is: tensor([-3.4472e-03, -3.1733e-02,  3.5672e+00], device='cuda:0') and trans_mesh_unproject is: tensor([[[-7.4570e-01, -3.9311e-03,  2.1386e+01]]])
+2024-01-13 21:38:07,262:INFO:Hand error is: 0.05210046097636223, error origin is:
+2024-01-13 21:38:07,265:INFO:Hand trans_mesh is: tensor([-2.7690e-02, -1.4679e-03,  3.4773e+00], device='cuda:0') and trans_mesh_unproject is: tensor([[[-0.2097,  0.3944, 20.6490]]])
+2024-01-13 21:38:11,355:INFO:Hand flip error is: 0.04476701095700264, error orgin is:
+2024-01-13 21:38:11,358:INFO:Hand trans_mesh is: tensor([ 2.8119e-02, -1.4998e-03,  3.4774e+00], device='cuda:0') and trans_mesh_unproject is: tensor([[[ 0.2102,  0.3944, 20.6499]]])
+2024-01-13 21:38:14,575:INFO:Hand error is: 0.05913843214511871, error origin is:
+2024-01-13 21:38:14,577:INFO:Hand trans_mesh is: tensor([ 3.4231e-03, -2.4570e-03,  2.8168e+00], device='cuda:0') and trans_mesh_unproject is: tensor([[[-0.2821,  0.1793, 16.8469]]])
+2024-01-13 21:38:17,840:INFO:Hand flip error is: 0.07224638015031815, error orgin is:
+2024-01-13 21:38:17,842:INFO:Hand trans_mesh is: tensor([-0.0036, -0.0031,  2.8165], device='cuda:0') and trans_mesh_unproject is: tensor([[[ 0.2819,  0.1787, 16.8453]]])
+2024-01-13 21:38:21,226:INFO:Face error is: 0.15242913365364075, error origin is: 0.15242937207221985
+2024-01-13 21:38:21,230:INFO:Face trans_mesh is: tensor([-0.0060, -0.0273,  3.5794], device='cuda:0') and trans_mesh_unproject is: tensor([[[-0.2202, -0.1003, 24.4160]]])
+2024-01-13 21:38:24,538:INFO:Face error is: 0.18526272475719452, error origin is: 0.18526305258274078
+2024-01-13 21:38:24,541:INFO:Face trans_mesh is: tensor([-1.6981e-03, -2.0606e-02,  3.6771e+00], device='cuda:0') and trans_mesh_unproject is: tensor([[[ 0.2033,  0.2857, 32.4831]]])
+2024-01-13 21:38:27,919:INFO:Hand error is: 0.059055395424366, error origin is:
+2024-01-13 21:38:27,921:INFO:Hand trans_mesh is: tensor([-1.4474e-02, -2.3627e-03,  3.2664e+00], device='cuda:0') and trans_mesh_unproject is: tensor([[[ 1.1982,  0.1824, 30.4132]]])
+2024-01-13 21:38:31,149:INFO:Hand flip error is: 0.05149538069963455, error orgin is:
+2024-01-13 21:38:31,151:INFO:Hand trans_mesh is: tensor([ 1.2827e-02, -1.6188e-03,  3.2669e+00], device='cuda:0') and trans_mesh_unproject is: tensor([[[-1.2000,  0.1832, 30.4185]]])
+2024-01-13 21:38:34,194:INFO:Hand error is: 0.03745649755001068, error origin is:
+2024-01-13 21:38:34,197:INFO:Hand trans_mesh is: tensor([-0.0134,  0.0270,  3.7179], device='cuda:0') and trans_mesh_unproject is: tensor([[[ 0.9478,  0.7752, 34.1719]]])
+2024-01-13 21:38:37,516:INFO:Hand flip error is: 0.04222288355231285, error orgin is:
+2024-01-13 21:38:37,519:INFO:Hand trans_mesh is: tensor([0.0130, 0.0273, 3.7178], device='cuda:0') and trans_mesh_unproject is: tensor([[[-0.9482,  0.7755, 34.1711]]])
+2024-01-13 21:38:41,008:INFO:Face error is: 0.1922185719013214, error origin is: 0.19221900403499603
+2024-01-13 21:38:41,011:INFO:Face trans_mesh is: tensor([-1.8528e-03, -4.7276e-02,  3.6132e+00], device='cuda:0') and trans_mesh_unproject is: tensor([[[ 1.2706, -0.0969, 35.0114]]])
+2024-01-13 21:38:45,295:INFO:Hand error is: 0.04424649477005005, error origin is:
+2024-01-13 21:38:45,297:INFO:Hand trans_mesh is: tensor([ 1.5481e-03, -3.4413e-03,  3.6427e+00], device='cuda:0') and trans_mesh_unproject is: tensor([[[-0.7505,  0.1788, 32.8768]]])
+2024-01-13 21:38:48,483:INFO:Hand flip error is: 0.052338846027851105, error orgin is:
+2024-01-13 21:38:48,486:INFO:Hand trans_mesh is: tensor([-2.6254e-03, -4.0354e-03,  3.6419e+00], device='cuda:0') and trans_mesh_unproject is: tensor([[[ 0.7492,  0.1782, 32.8688]]])
+2024-01-13 21:38:51,738:INFO:Face error is: 0.15670031309127808, error origin is: 0.15670152008533478
+2024-01-13 21:38:51,740:INFO:Face trans_mesh is: tensor([-0.0054, -0.0484,  4.1328], device='cuda:0') and trans_mesh_unproject is: tensor([[[-0.8848, -0.0669, 47.3944]]])
+2024-01-13 21:38:56,380:INFO:Face error is: 0.14513301849365234, error origin is: 0.14513304829597473
+2024-01-13 21:38:56,383:INFO:Face trans_mesh is: tensor([-0.0048, -0.0459,  3.4545], device='cuda:0') and trans_mesh_unproject is: tensor([[[ 0.2683, -0.0895, 34.5445]]])
+2024-01-13 21:39:09,587:INFO:Face error is: 0.1356138437986374, error origin is: 0.13561394810676575
+2024-01-13 21:39:09,590:INFO:Face trans_mesh is: tensor([-3.0537e-03, -3.1168e-02,  4.0066e+00], device='cuda:0') and trans_mesh_unproject is: tensor([[[-0.0425, -0.1084,  6.3096]]])
+2024-01-13 21:39:23,329:INFO:Hand error is: 0.045369431376457214, error origin is:
+2024-01-13 21:39:23,332:INFO:Hand trans_mesh is: tensor([-0.0272,  0.0183,  3.6626], device='cuda:0') and trans_mesh_unproject is: tensor([[[-0.5570, -0.5082, 30.3702]]])
+2024-01-13 21:39:28,479:INFO:Hand flip error is: 0.0399247407913208, error orgin is:
+2024-01-13 21:39:28,482:INFO:Hand trans_mesh is: tensor([0.0267, 0.0182, 3.6626], device='cuda:0') and trans_mesh_unproject is: tensor([[[ 0.5566, -0.5083, 30.3699]]])
+2024-01-13 21:39:48,192:INFO:Hand error is: 0.06421587616205215, error origin is:
+2024-01-13 21:39:48,195:INFO:Hand trans_mesh is: tensor([0.0042, 0.0062, 2.6353], device='cuda:0') and trans_mesh_unproject is: tensor([[[-0.7772,  0.5674, 39.5691]]])
+2024-01-13 21:39:52,572:INFO:Hand flip error is: 0.054472632706165314, error orgin is:
+2024-01-13 21:39:52,575:INFO:Hand trans_mesh is: tensor([-0.0036,  0.0061,  2.6352], device='cuda:0') and trans_mesh_unproject is: tensor([[[ 0.7778,  0.5673, 39.5679]]])
+2024-01-13 21:39:55,954:INFO:Hand error is: 0.03470391407608986, error origin is:
+2024-01-13 21:39:55,957:INFO:Hand trans_mesh is: tensor([2.6326e-03, 1.0242e-02, 3.5909e+00], device='cuda:0') and trans_mesh_unproject is: tensor([[[-1.3098,  0.8011, 39.0312]]])
+2024-01-13 21:39:59,116:INFO:Hand flip error is: 0.041472744196653366, error orgin is:
+2024-01-13 21:39:59,118:INFO:Hand trans_mesh is: tensor([-3.3290e-03,  1.0765e-02,  3.5908e+00], device='cuda:0') and trans_mesh_unproject is: tensor([[[ 1.3091,  0.8016, 39.0304]]])
+2024-01-13 21:44:43,154:INFO:/code/dataset/coco/annotations/coco_wholebody_train_v1.0.json
