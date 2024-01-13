@@ -183,7 +183,7 @@ def demo():
         rendered_img = canvas.copy()        
         
         princpt = princpt * r + torch.FloatTensor([padw, padh])   ## scale and shift camera center
-        focal = focal / r   ## scale the camera focus
+        focal = focal * r   ## scale the camera focus
         K = torch.zeros([1, 3, 3])
         K[:,0,0] = focal[None][:,0]
         K[:,1,1] = focal[None][:,1]
