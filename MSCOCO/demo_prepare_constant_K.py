@@ -168,11 +168,15 @@ def demo():
         n_vis = 500
         is_rendered = False
         
+        # Define the constant matrix for element-wise multiplication
+        flip_matrix = torch.tensor([[1., -1., -1.],
+                                    [-1., 1., 1.],
+                                    [-1., 1., 1.]]).cuda()
         db = COCO(json_file)
         for img_id, anns in tqdm(db.imgToAnns.items()):
             img = db.imgs[img_id]
             h, w, f = img['height'], img['width'], img['file_name']
-            
+            shape_kpt = np.array([w, h, 1]).astype(np.float32)
             focal_2 = torch.FloatTensor([5000, 5000])
             princpt_2 = torch.FloatTensor([w/2, h/2])
             # ===> very important ### to calucate the distributino of trans_uv and scale <=== #
@@ -213,8 +217,8 @@ def demo():
                     cls_hand = 1 if hand == 'left' else 2
                     
                     if lbox[2] > 0 and lbox[3] > 0:  # if w <= 0 and h <= 0
-                        kpts = np.reshape(np.array(ann['{}hand_kpts'.format(hand)], dtype=float), (21,3))
-
+                        kpts = np.reshape(np.array(ann['{}hand_kpts'.format(hand)], dtype=np.float32), (21,3))
+                        kpts = kpts / shape_kpt
                         is_mesh = 0
                         if str(ann['id']) in mano_params:  ### for hand
                             if mano_params[str(ann['id'])][hand]:
@@ -278,7 +282,7 @@ def demo():
                             trans = torch.FloatTensor(trans).view(1,-1) # translation vector
                             focal = torch.FloatTensor(mano_param['cam_param']['focal'])
                             princpt = torch.FloatTensor(mano_param['cam_param']['princpt'])
-                            princpt[0] = w - princpt[0]
+                            princpt[0] = w - princpt[0] # flip the camera
                         
                             hand_flip = "right" if hand == "left" else "left"
                             # get mesh and joint coordinates
@@ -286,12 +290,17 @@ def demo():
                                 output = mano_layer[hand_flip](betas=shape, hand_pose=hand_pose.view(1,-1), global_orient=root_pose, transl=trans)
                             mesh_cam = output.vertices[0].cuda()
                             
-                            rotation_matrix_flip, translation_flip, trans_mesh_flip = frontalize_V2(mesh_cam, hand_template[hand_flip])
-                            
+                            # rotation_matrix_flip, translation_flip, trans_mesh_flip = frontalize_V2(mesh_cam, hand_template[hand_flip])
+                            rotation_matrix_flip = rotation_matrix*flip_matrix
+                            translation_flip = translation.clone()
+                            translation_flip[..., 0] = -translation_flip[..., 0]
+                            trans_mesh_flip = trans_mesh.clone()
+                            trans_mesh_flip[..., 0] = -trans_mesh_flip[..., 0]
+                        
                             mesh_cam_trans = apply_transformation(mesh_cam, rotation_matrix_flip, translation_flip)
                             parameter_pca_flip = hand_pca[hand_flip].transform(mesh_cam_trans.view(1, -1))[:, :num_comps]
                             
-                            trans_uv_flip = perspective_projection(trans_mesh_flip.cpu()[None, None], focal[None], princpt[None])
+                            trans_uv_flip = perspective_projection(trans_mesh_flip.cpu()[None, None], focal[None], princpt[None]) # flip the cameara
                             scale_flip = focal.mean() / trans_mesh_flip[-1].cpu()
                             trans_mesh_unproject = calc_global_translation(trans_uv_flip, scale_flip, K)
                             
@@ -316,10 +325,7 @@ def demo():
                                         "trans_uv": trans_uv.squeeze() / torch.tensor([w, h]),
                                         "scale": scale,
                                         "parameter_pca": parameter_pca.cpu(),
-                                        "rotation_flip": rotation_matrix_flip.cpu(), 
-                                        "trans_uv_flip": trans_uv_flip.squeeze() / torch.tensor([w, h]),
-                                        "scale_flip": scale_flip,
-                                        "parameter_pca_flip": parameter_pca_flip.cpu(),
+                                        "parameter_pca_flip": parameter_pca_flip.cpu(),  
                                         "kpts": kpts, 
                                         "cls": cls_hand,
                                         "id": ann['id'],
@@ -341,7 +347,8 @@ def demo():
                 fbox[[0, 2]] /= w  # normalize x
                 fbox[[1, 3]] /= h  # normalize y
                 if fbox[2] > 0 and fbox[3] > 0:  # if w <= 0 and h <= 0
-                    kpts = np.reshape(np.array(ann['face_kpts'], dtype=np.float64), (68,3))
+                    kpts = np.reshape(np.array(ann['face_kpts'], dtype=np.float32), (68,3))
+                    kpts = kpts / shape_kpt
                     # print(kpts)
                     is_mesh = 0
                     if str(ann['id']) in flame_params:
@@ -412,7 +419,9 @@ def demo():
                                     "is_mesh": is_mesh})
                     
                 ################ for body ################
-                meta.append({"kpts": ann['keypoints'], 
+                kpts = np.reshape(np.array(ann['keypoints'], dtype=np.float32), (17,3))
+                kpts = kpts / shape_kpt
+                meta.append({"kpts": kpts, 
                             "cls": 0,
                             "id": ann['id'],
                             "box": box})
